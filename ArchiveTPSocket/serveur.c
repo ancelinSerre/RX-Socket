@@ -59,6 +59,19 @@ void serveur_appli(char *service)
 /* Procedure correspondant au traitemnt du serveur de votre application */
 
 {
-	/* A completer ... */
+	char diff;
 
+	/*création de la socket d'écoute*/
+	struct sockaddr_in *p_adr_cli;
+	adr_socket(service, NULL, SOCK_STREAM, &p_adr_cli);
+	/* socket d'écoute */
+	int sock_id = h_socket(AF_INET, SOCK_STREAM);
+	/*instancie l'adresse locale dans le descripteur de socket*/
+	h_bind(sock_id,&p_adr_cli);
+	/*On met la socket en écoute*/
+	h_listen(sock_id,5);
+	/*On accepte une connexion*/
+	int sock_cli = h_accept(sock_id,&p_adr_cli);
+	h_reads(sock_cli,diff,1);
+	printf("%c ",diff);
 }
