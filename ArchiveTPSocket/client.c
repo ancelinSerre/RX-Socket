@@ -19,8 +19,8 @@
 
 #include "fon.h"   		/* primitives de la boite a outils */
 
-#define SERVICE_DEFAUT "1111"
-#define SERVEUR_DEFAUT "127.0.0.1"
+#define SERVICE_DEFAUT "16010"
+#define SERVEUR_DEFAUT "200.0.0.1"
 
 void client_appli (char *serveur, char *service);
 
@@ -69,8 +69,34 @@ void client_appli (char *serveur,char *service)
 
 {
   
+	/* On créé un socket distant */
+	struct sockaddr_in *p_adr_serv; 
+	/* On rempli les champs de la sock distante */
+	adr_socket(service,serveur,SOCK_STREAM,&p_adr_serv);
+	
+	/* On récupère l'id de la socket client */
+	int sock_id = h_socket(AF_INET,SOCK_STREAM);
+	h_connect(sock_id,p_adr_serv);
 
-/* a completer .....  */
+	char level;
+	// Faire un h_read 
+	printf("Entrez la difficulté : ");
+	scanf("%c",&level);
+	if(level == 0)
+	{
+		// Faire un h_read 
+		printf("Caractère incorrect !\n");
+		exit(0);
+	}
+
+	// On envoi la réponse au serveur
+	while(h_writes(sock_id,&level,1) != 1)
+	{
+		printf("Erreur lors de l'envoi, veuillez recommencer.\n");
+		scanf("%c",&level);
+	}
+
+
 
  }
 
