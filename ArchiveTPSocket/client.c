@@ -74,8 +74,9 @@ void client_appli (char *serveur,char *service)
 	/* On rempli les champs de la sock distante */
 	adr_socket(service,serveur,SOCK_STREAM,&p_adr_serv);
 	
-	/* On récupère l'id de la socket client */
+	/* On crée la socket client et on stock son id */
 	int sock_id = h_socket(AF_INET,SOCK_STREAM);
+  /* On lance la connexion au serveur avec en param l'id du socket et les infos du serveur */
 	h_connect(sock_id,p_adr_serv);
 
 	char level;
@@ -90,11 +91,7 @@ void client_appli (char *serveur,char *service)
 	}
 
 	// On envoi la réponse au serveur
-	while(h_writes(sock_id,&level,1) != 1)
-	{
-		printf("Erreur lors de l'envoi, veuillez recommencer.\n");
-		scanf("%c",&level);
-	}
+	h_writes(sock_id,&level,1);
 
 
 
