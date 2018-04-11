@@ -15,7 +15,8 @@
 #include <curses.h> 		/* Primitives de gestion d'ecran */
 #include <sys/signal.h>
 #include <sys/wait.h>
-#include<stdlib.h>
+#include <stdlib.h>
+#include "cliGame.c"
 
 #include "fon.h"   		/* primitives de la boite a outils */
 
@@ -79,21 +80,10 @@ void client_appli (char *serveur,char *service)
   /* On lance la connexion au serveur avec en param l'id du socket et les infos du serveur */
 	h_connect(sock_id,p_adr_serv);
 
-	char level;
-	// Faire un h_read 
-	printf("Entrez la difficulté : ");
-	scanf("%c",&level);
-	if(level == 0)
-	{
-		// Faire un h_read 
-		printf("Caractère incorrect !\n");
-		exit(0);
-	}
+	cliGame(sock_id);
 
-	// On envoi la réponse au serveur
-	h_writes(sock_id,&level,1);
-
-
+	/* On close la socket */
+	h_close(sock_id);
 
  }
 
