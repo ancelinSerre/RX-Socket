@@ -59,8 +59,6 @@ void serveur_appli(char *service)
 /* Procedure correspondant au traitemnt du serveur de votre application */
 
 {
-
 	/* A completer ... */
-}
 
-/******************************************************************************/
+}
