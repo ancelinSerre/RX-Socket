@@ -17,12 +17,15 @@
 #include <sys/signal.h>
 #include <sys/wait.h>
 #include <stdlib.h>
+#include "servGame.c"
 
 #include "fon.h" /* Primitives de la boite a outils */
 
-#define SERVICE_DEFAUT "1111"
+#define SERVICE_DEFAUT "0"
 
 void serveur_appli(char *service); /* programme serveur */
+
+void startServGame(int sock_id); /* boucle de jeu */
 
 /******************************************************************************/
 /*---------------- programme serveur ------------------------------*/
@@ -72,6 +75,43 @@ void serveur_appli(char *service)
 	h_listen(sock_id,5);
 	/*On accepte une connexion*/
 	int sock_cli = h_accept(sock_id,p_adr_cli);
-	h_reads(sock_cli,diff,1);
-	printf("%c ",diff);
+
+  //boucle jeu
+
+  startServGame(sock_cli);
+
+  h_close(sock_cli);
+
+  h_close(sock_id);
+
+
+  //fermer
+
+}
+
+void startServGame(int sock_cli) {
+  char vie;
+  char* reponse = "elephant";
+  char taille_mot = 8;
+  char* temp = "________\0";
+  int etat = 0;
+  int gagne = false;
+
+  char lettre;
+
+  h_writes(sock_cli,"Bonjour, veuillez saisir la difficulté (entre 1 et 9) : ",100);
+  printf("test1\n");
+  h_reads(sock_cli, &vie, 1);
+  printf("test2\n");
+  vie--;
+
+  h_writes(sock_cli, &vie,1);
+  printf("test3\n");
+
+  while((vie != '0') && (!gagne)) {
+
+  }
+
+
+
 }
