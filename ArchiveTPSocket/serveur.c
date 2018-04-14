@@ -67,11 +67,11 @@ void serveur_appli(char *service)
 	/* socket d'écoute */
 	int sock_id = h_socket(AF_INET, SOCK_STREAM);
 	/*instancie l'adresse locale dans le descripteur de socket*/
-	h_bind(sock_id,&p_adr_cli);
+	h_bind(sock_id,p_adr_cli);
 	/*On met la socket en écoute*/
 	h_listen(sock_id,5);
 	/*On accepte une connexion*/
-	int sock_cli = h_accept(sock_id,&p_adr_cli);
+	int sock_cli = h_accept(sock_id,p_adr_cli);
 	h_reads(sock_cli,diff,1);
 	printf("%c ",diff);
 }
