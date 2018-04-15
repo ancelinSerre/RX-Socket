@@ -1,14 +1,14 @@
-/******************************************************************************/
-/*			Application: ...					*/
-/******************************************************************************/
-/*									      */
-/*			 programme  CLIENT				      */
-/*									      */
-/******************************************************************************/
-/*									      */
-/*		Auteurs : ... 					*/
-/*									      */
-/******************************************************************************/
+/**
+ *    TP5 de Réseaux : Programmation d'une application client/serveur
+ *    ---------------------------------------------------------------
+ * 
+ *		Application : Jeu du pendu 
+ *    fichier : client.c				     
+ *					      
+ *		Auteurs :  Damien Wykland, Baptiste Bouvier et Ancelin Serre						      
+ *		Date : 13 Avril 2018 
+ *									      
+ */
 
 #include <stdio.h>
 #include <curses.h> /* Primitives de gestion d'ecran */
@@ -28,14 +28,14 @@ void startCliGame(int sock_id);
 
 char lireChar();
 
-/*****************************************************************************/
-/*--------------- programme client -----------------------*/
+/*---------- programme client ----------*/
 
+/* Procedure principale */
 int main(int argc, char *argv[])
 {
 
   char *serveur = SERVEUR_DEFAUT; /* serveur par defaut */
-  char *service = SERVICE_DEFAUT; /* numero de service par defaut (no de port) */
+  char *service = SERVICE_DEFAUT; /* numero de service par defaut (num de port) */
 
   /* Permet de passer un nombre de parametre variable a l'executable */
   switch (argc)
@@ -57,18 +57,21 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  /* serveur est le nom (ou l'adresse IP) auquel le client va acceder */
-  /* service le numero de port sur le serveur correspondant au  */
-  /* service desire par le client */
-
+  /* 
+    serveur est le nom (ou l'adresse IP) auquel le client va acceder 
+    service le numero de port sur le serveur correspondant au  
+    service desire par le client 
+  */
   client_appli(serveur, service);
 }
 
-/*****************************************************************************/
+/**
+ * Procedure correspondant au traitement du client de l'application
+ * @param char* l'adresse du serveur
+ * @param char* le service (numéro de port) utilisé 
+ * @return void
+ */
 void client_appli(char *serveur, char *service)
-
-/* procedure correspondant au traitement du client de votre application */
-
 {
 
   /* On créé un socket distant */
@@ -81,91 +84,90 @@ void client_appli(char *serveur, char *service)
   /* On lance la connexion au serveur avec en param l'id du socket et les infos du serveur */
   h_connect(sock_id, p_adr_serv);
 
+  /* Lancement de la boucle de jeu côté client */
   startCliGame(sock_id);
-
-  //h_writes(sock_id,"Bonjourno Damiano",100);
 
   /* On close la socket */
   h_close(sock_id);
 }
 
-/*****************************************************************************/
 
 /**
  * Boucle de jeu côté client
+ * @param int le descripteur d'une socket utilisée par le client
+ * pour l'échange de données avec le processus serveur
+ * @return void
  */
 void startCliGame(int sock_id)
 {
   /* Variables */
-  char *buffer = malloc(100);
-  int taille_mot;
+  char* buffer = malloc(100);
   char temp;
   char vie;
-  int diff;
   int gagne = 0;
 
   /* Demande et envoi de la difficulté (nombre de vie) */
   printf("\nBonjour, veuillez saisir la difficulté (votre nombre de vie entre 1 et 9) : ");
-  scanf("%d", &diff);
-  while (diff > 9 || diff < 1)
+  vie = getchar();
+  while (getchar() != '\n');
+  while (!isdigit(vie))
   {
     printf("Veuillez entrer un chiffre entre 1..9 : ");
-    scanf("%d", &diff);
+    vie = getchar();
+    while (getchar() != '\n');
     printf("\n");
   }
-  while (getchar() != '\n');
-  vie = diff + '0';
   h_writes(sock_id, &vie, 1);
 
+  /* Affichage de la taille du mot */
   h_reads(sock_id, &temp, 1);
-  taille_mot = temp - '0';
-
-  printf("Le mot est de taille %d, bonne chance !\n", taille_mot);
+  printf("Le mot est de taille %c, bonne chance !\n", temp);
 
   /* Boucle de jeu */
   while (!gagne && vie != '0')
   {
-    /* afficher mot */
+    /* Affichage de l'état du mot */
     h_reads(sock_id, buffer, 100);
     printf("Etat du mot : %s\n", buffer);
-
-
 
     /* On choisi un caractère : */
     temp = lireChar();
     h_writes(sock_id, &temp, 1);
 
-    /* afficher etat tour */
+    /* On affiche l'état du tour */
     h_reads(sock_id, &temp, 1);
-    switch (temp){
-    case '0':
-      printf("Loupé ! Vous perdez une vie.\n");
-      break;
-    case '1':
-      printf("Bravo !\n");
-      break;
+    switch (temp)
+    {
+      case '0':
+        printf("Loupé ! Vous perdez une vie.\n");
+        break;
+      case '1':
+        printf("Bravo !\n");
+        break;
     }
-    /* afficher vie*/
+    /* Affichage du nombre de vie restant */
     h_reads(sock_id, &vie, 1);
     printf("Nombre de vie restante : %c\n", vie);
 
+    /* Si le joueur n'a plus de vie, la partie est terminée */
     h_reads(sock_id, &temp, 1);
-    if(temp == '1') {
+    if(temp == '1')
       gagne = 1;
-    }
-
   }
 
-  if (gagne){
+  /* Affichage du mot à trouver */
+  if (gagne)
     printf("Bien joué ! Vous avez gagné.\n");
-  }else{
+  else
     printf("Dommage, bien essayé !\n");
-  }
 
   free(buffer);
 }
 
-/* Fonction utilitaire */
+/** 
+ * Lit un caractère sur l'entrée standard
+ * @return char, le caractère lu 
+ */
 char lireChar()
 {
   char c = 0;
