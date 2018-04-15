@@ -13,6 +13,8 @@
 
 #include <stdio.h>
 #include <curses.h>
+#include <string.h>
+#include <time.h>
 
 #include <sys/signal.h>
 #include <sys/wait.h>
@@ -26,6 +28,10 @@
 void serveur_appli(char *service); /* programme serveur */
 
 void startServGame(int sock_id); /* boucle de jeu */
+
+char playRound(char* mot_temp, char* mot_juste,char lettre);
+
+int victoire(char* mot_temp, int taille_mot);
 
 /******************************************************************************/
 /*---------------- programme serveur ------------------------------*/
@@ -73,45 +79,102 @@ void serveur_appli(char *service)
 	h_bind(sock_id,p_adr_cli);
 	/*On met la socket en écoute*/
 	h_listen(sock_id,5);
-	/*On accepte une connexion*/
-	int sock_cli = h_accept(sock_id,p_adr_cli);
+  int pid;
 
-  //boucle jeu
+  while(1) {
+    /*On accepte une connexion*/
+	  int sock_cli = h_accept(sock_id,p_adr_cli);
 
-  startServGame(sock_cli);
+    pid = fork();
 
-  h_close(sock_cli);
-
-  h_close(sock_id);
-
-
-  //fermer
-
-}
-
-void startServGame(int sock_cli) {
-  char vie;
-  char* reponse = "elephant";
-  char taille_mot = 8;
-  char* temp = "________\0";
-  int etat = 0;
-  int gagne = false;
-
-  char lettre;
-
-  h_writes(sock_cli,"Bonjour, veuillez saisir la difficulté (entre 1 et 9) : ",100);
-  printf("test1\n");
-  h_reads(sock_cli, &vie, 1);
-  printf("test2\n");
-  vie--;
-
-  h_writes(sock_cli, &vie,1);
-  printf("test3\n");
-
-  while((vie != '0') && (!gagne)) {
-
+    if(pid == 0) {
+      // boucle jeu
+      startServGame(sock_cli);
+      //fermer socket
+      h_close(sock_cli);
+    }
   }
 
-
+  // fermer sockets
+  h_close(sock_id);
 
 }
+
+
+/**
+ * Boucle de jeu coté serveur
+ */
+void startServGame(int sock_cli) {
+  /* Variables */
+  char vie;
+  char* mots[5] = {"TABLE","CHAISE","CAHIER","CASQUE","SERVIETTE"};  
+  char* mot_juste;
+  char* mot_temp = malloc(100);
+  int taille_mot;
+  char etat = '3';
+  int gagne = 0;
+  char lettre;
+  char buffer;
+
+  /* Lecture difficulté */
+  h_reads(sock_cli, &vie, 1);
+  
+  /* Génerer mot et envoyer taille*/
+  srand(time(NULL));
+  int random = (rand() % 5);
+  mot_juste = mots[random];
+  taille_mot = strlen(mot_juste);
+  for(int i = 0; i<taille_mot; i++) {
+    mot_temp[i] = '*';
+  }
+  
+  buffer = taille_mot + '0';
+  h_writes(sock_cli, &buffer,1);
+
+  /* Boucle de jeu */
+  while(!gagne && vie != '0') {
+    h_writes(sock_cli, mot_temp,100);
+    h_reads(sock_cli, &lettre, 1);
+
+    etat = playRound(mot_temp, mot_juste, lettre);
+    if(etat == '0') {
+      vie--;
+    }
+
+    h_writes(sock_cli, &etat, 1);
+    h_writes(sock_cli, &vie, 1);
+    gagne = victoire(mot_temp, taille_mot);
+    buffer = gagne + '0';
+    h_writes(sock_cli, &buffer,1);
+  }
+
+}
+
+char playRound(char* mot_temp, char* mot_juste,char lettre) {
+  int win = 0;
+
+  for(int i=0; mot_juste[i] != '\0'; i++) {
+    if(lettre == mot_juste[i] && mot_temp[i] == '*') {
+      win = 1;
+      mot_temp[i] = lettre;
+    }
+  }
+  if(win) {
+    return '1';
+  }else {
+    return '0';
+  }
+
+}
+
+int victoire(char* mot_temp, int taille_mot) {
+  int win = 1;
+  for(int i = 0; i<taille_mot; i++) {
+    if(mot_temp[i] == '*') {
+      win = 0;
+    }
+  }
+  return win;
+}
+
+

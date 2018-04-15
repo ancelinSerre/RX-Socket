@@ -168,7 +168,7 @@ void h_bind ( int num_soc, struct sockaddr_in *p_adr_socket )
 	sockaddr_in) ); /* Modif PS */
 
 
-#ifdef DEBUG
+#ifndef DEBUG
 /*bzero (&s,sizeof(s));*/
 lensa=sizeof(struct sockaddr_in);
 if	(!getsockname (num_soc,  (struct sockaddr *)&s, (socklen_t *)&lensa))
